@@ -1,0 +1,32 @@
+# poc-bank Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-11-27
+
+## Active Technologies
+- TypeScript (Strict mode) + Axios v1.x, React Query (TanStack) v5.x, React Navigation v6.x (003-api-swagger-sync)
+- N/A (API 클라이언트만 수정) (003-api-swagger-sync)
+
+- YAML (GitHub Actions workflow), Bash scripts (002-ios-testflight-workflow)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+# Add commands for YAML (GitHub Actions workflow), Bash scripts
+
+## Code Style
+
+YAML (GitHub Actions workflow), Bash scripts: Follow standard conventions
+
+## Recent Changes
+- 003-api-swagger-sync: Added TypeScript (Strict mode) + Axios v1.x, React Query (TanStack) v5.x, React Navigation v6.x
+
+- 002-ios-testflight-workflow: Added YAML (GitHub Actions workflow), Bash scripts
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuth() { return request.auth != null; }
+    function isFamilyMember(familyId) {
+      return isAuth()
+        && familyId in request.auth.token.familyIds;
+    }
+
+    match /families/{familyId}/{allPaths=**} {
+      allow read: if isFamilyMember(familyId);
+      allow write: if isFamilyMember(familyId)
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

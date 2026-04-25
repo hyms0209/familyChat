@@ -1,0 +1,16 @@
+# macOS / OS
+.DS_Store
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Local env (mobile/.gitignore 도 별도 처리)
+.env
+.env.*
+!.env.example

@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuth() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+    function isFamilyMember(familyId) {
+      return isAuth()
+        && familyId in request.auth.token.familyIds;
+    }
+    function isParent(familyId) {
+      return isFamilyMember(familyId)
+        && (request.auth.token.role == "parent"
+            || request.auth.token.role == "owner");
+    }
+    function isOwner(familyId) {
+      return isFamilyMember(familyId)
+        && request.auth.token.role == "owner";
+    }
+
+    match /users/{userId} {
+      allow read: if isAuth() && uid() == userId;
+      allow write: if isAuth() && uid() == userId;
+    }
+
+    match /families/{familyId} {
+      allow read: if isFamilyMember(familyId);
+      allow update: if isParent(familyId)
+        && request.resource.data.ownerId == resource.data.ownerId;
+      allow delete: if isOwner(familyId);
+
+      match /members/{userId} {
+        allow read: if isFamilyMember(familyId);
+        allow create, delete: if isParent(familyId);
+        allow update: if isParent(familyId) || uid() == userId;
+      }
+
+      match /chats/{chatId} {
+        allow read: if isFamilyMember(familyId)
+          && uid() in resource.data.participantIds;
+        allow create: if isFamilyMember(familyId)
+          && uid() in request.resource.data.participantIds;
+      }
+
+      match /chats/{chatId}/messages/{messageId} {
+        allow read: if isFamilyMember(familyId)
+          && uid() in get(/databases/$(database)/documents/families/$(familyId)/chats/$(chatId)).data.participantIds;
+        allow create: if isFamilyMember(familyId)
+          && request.resource.data.senderId == uid();
+        allow update, delete: if isFamilyMember(familyId)
+          && resource.data.senderId == uid()
+          && request.time < resource.data.sentAt + duration.value(5, 'm');
+      }
+
+      match /events/{eventId} {
+        allow read: if isFamilyMember(familyId);
+        allow create: if isFamilyMember(familyId)
+          && request.resource.data.createdBy == uid();
+        allow update, delete: if isParent(familyId)
+          || (isFamilyMember(familyId) && resource.data.createdBy == uid());
+      }
+
+      match /academies/{academyId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isParent(familyId);
+      }
+
+      match /locations/{userId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId) && uid() == userId;
+      }
+
+      match /invites/{inviteId} {
+        allow read: if isFamilyMember(familyId);
+        allow create, update: if isParent(familyId);
+      }
+    }
+
+    match /locationHistory/{familyId}/users/{userId}/points/{pointId} {
+      allow read: if isFamilyMember(familyId);
+      allow write: if isFamilyMember(familyId) && uid() == userId;
+    }
+
+    match /notifications/{userId}/items/{notifId} {
+      allow read, update: if isAuth() && uid() == userId;
+      allow create: if false; // Cloud Functions만 생성
+    }
+  }
+}
